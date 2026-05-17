@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron": "electron .",
+    "electron:dev": "electron .",
+    "electron:dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -21,9 +24,28 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^32.1.2",
+    "electron-builder": "^24.13.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.gemini.article",
+    "productName": "Gemini Article",
+    "files": [
+      "electron/**/*",
+      ".next/**/*",
+      "public/**/*",
+      "src/**/*",
+      "package.json",
+      "next.config.ts"
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis"
+    }
   }
 }

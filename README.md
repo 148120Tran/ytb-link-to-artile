@@ -18,6 +18,20 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Electron wrapper
+
+Run a local desktop wrapper that starts the Next.js server automatically:
+
+```bash
+npm run electron:dev
+```
+
+Build a Windows installer (requires `npm run build` to succeed):
+
+```bash
+npm run electron:dist
+```
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

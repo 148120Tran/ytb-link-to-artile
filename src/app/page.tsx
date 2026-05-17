@@ -38,6 +38,7 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
   const [headerFile, setHeaderFile] = useState<File | null>(null);
   const [headerPreviewUrl, setHeaderPreviewUrl] = useState(
     FALLBACK_HEADER_IMAGE_URL
@@ -162,6 +163,7 @@ export default function Home() {
         body: JSON.stringify({
           content: extractJson.content,
           customPrompt: customPrompt.trim() ? customPrompt : undefined,
+          apiKey: geminiApiKey.trim() ? geminiApiKey.trim() : undefined,
         }),
       });
 
@@ -328,6 +330,22 @@ export default function Home() {
                     className="min-h-[140px] w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-white/80 outline-none transition focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20"
                   />
                 )}
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-white/60">
+                    Gemini API key (optional)
+                  </label>
+                  <input
+                    type="password"
+                    value={geminiApiKey}
+                    onChange={(event) => setGeminiApiKey(event.target.value)}
+                    placeholder="Paste your key to override the server env"
+                    className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-xs text-white/80 outline-none transition focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20"
+                  />
+                  <p className="text-xs text-white/50">
+                    Leave empty to use the server-side GEMINI_API_KEY.
+                  </p>
+                </div>
 
                 <div className="grid gap-4 md:grid-cols-[1fr_0.8fr]">
                   <div className="space-y-2">

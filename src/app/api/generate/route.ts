@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  let payload: { content?: string; customPrompt?: string };
+  let payload: { content?: string; customPrompt?: string; apiKey?: string };
   try {
     payload = await request.json();
   } catch {
@@ -17,7 +17,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const article = await generateArticle(content, payload.customPrompt);
+    const article = await generateArticle(
+      content,
+      payload.customPrompt,
+      payload.apiKey
+    );
     return Response.json({ article });
   } catch (error) {
     const message =

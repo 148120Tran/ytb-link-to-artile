@@ -3,8 +3,12 @@ import { DEFAULT_ARTICLE_PROMPT } from "./prompts";
 
 const DEFAULT_MODEL = "gemini-1.5-flash-latest";
 
-export async function generateArticle(content: string, customPrompt?: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
+export async function generateArticle(
+  content: string,
+  customPrompt?: string,
+  apiKeyOverride?: string
+) {
+  const apiKey = apiKeyOverride?.trim() || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not set.");
   }
