@@ -45,11 +45,14 @@ export function buildRichHtml({
     ? `<img src="${normalizedThumbnailUrl}" width="1920" style="max-width:100%;height:auto" />`
     : `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">Open source</a>`;
   const thumbnailHtml = `<div style="text-align:center;margin:24px 0">${thumbnailContent}</div>`;
+  const introHtml =
+    '<p><strong>Watch the full video at the end.</strong></p>';
 
   const paragraphs = splitParagraphs(article)
     .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
     .join("");
   const articleHtml = `<div>${paragraphs}</div>`;
+  const outroHtml = '<p><strong>Full video.</strong></p>';
 
   let footerHtml = "";
   if (platform === "youtube" && youtubeVideoId) {
@@ -61,5 +64,12 @@ export function buildRichHtml({
     footerHtml = `<div style="text-align:center;margin-top:32px">${footerContent}</div>`;
   }
 
-  return [headerHtml, thumbnailHtml, articleHtml, footerHtml].join("");
+  const bodyParts = [headerHtml, thumbnailHtml, introHtml, articleHtml];
+  if (footerHtml) {
+    bodyParts.push(outroHtml, footerHtml);
+  } else {
+    bodyParts.push(outroHtml);
+  }
+
+  return bodyParts.join("");
 }
