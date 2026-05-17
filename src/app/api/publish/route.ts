@@ -1,4 +1,5 @@
 import { buildRichHtml } from "@/lib/html-builder";
+import { LIVEWIRE_SNAPSHOT_OVERRIDE } from "@/lib/livewire-snapshot";
 import * as cheerio from "cheerio";
 
 export const runtime = "nodejs";
@@ -9,8 +10,6 @@ const DEFAULT_LIVEWIRE_PAGE_URL =
 const DEFAULT_LIVEWIRE_COMPONENT = "post-manager-component";
 const DEFAULT_LIVEWIRE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
-const DEFAULT_LIVEWIRE_SNAPSHOT_OVERRIDE =
-  process.env.LIVEWIRE_SNAPSHOT_OVERRIDE?.trim() || "";
 
 type LivewireInitialData = {
   fingerprint: Record<string, unknown>;
@@ -86,16 +85,31 @@ function buildInitialDataFromSnapshot(
   return { fingerprint, serverMemo };
 }
 
-function parseLivewireOverride(raw: string): LivewireInitialData {
-  const decoded = decodeHtmlAttribute(raw);
-  const parsed = JSON.parse(decoded) as Record<string, unknown>;
+function parseLivewireOverride(raw: unknown): LivewireInitialData {
+  if (typeof raw === "string") {
+    const decoded = decodeHtmlAttribute(raw);
+    const parsed = JSON.parse(decoded) as Record<string, unknown>;
 
-  if (parsed && "fingerprint" in parsed && "serverMemo" in parsed) {
-    return parsed as LivewireInitialData;
+    if (parsed && "fingerprint" in parsed && "serverMemo" in parsed) {
+      return parsed as LivewireInitialData;
+    }
+
+    if (parsed && "memo" in parsed && "checksum" in parsed) {
+      return buildInitialDataFromSnapshot(parsed as LivewireSnapshot);
+    }
+
+    throw new Error("Invalid Livewire snapshot payload.");
   }
 
-  if (parsed && "memo" in parsed && "checksum" in parsed) {
-    return buildInitialDataFromSnapshot(parsed as LivewireSnapshot);
+  if (raw && typeof raw === "object") {
+    const parsed = raw as Record<string, unknown>;
+    if ("fingerprint" in parsed && "serverMemo" in parsed) {
+      return parsed as LivewireInitialData;
+    }
+
+    if ("memo" in parsed && "checksum" in parsed) {
+      return buildInitialDataFromSnapshot(parsed as LivewireSnapshot);
+    }
   }
 
   throw new Error("Invalid Livewire snapshot payload.");
@@ -235,7 +249,7 @@ export async function POST(request: Request) {
     typeof csrfTokenInput === "string" && csrfTokenInput.trim()
       ? csrfTokenInput.trim()
       : null;
-  const livewireSnapshotOverride = DEFAULT_LIVEWIRE_SNAPSHOT_OVERRIDE || null;
+  const livewireSnapshotOverride = LIVEWIRE_SNAPSHOT_OVERRIDE;
   const sampleImageUrl = resolveSampleImageUrl(livewirePageUrl);
   const headerImageUrl = thumbnailUrl.trim() ? thumbnailUrl : sampleImageUrl;
   const descriptionHtml = buildRichHtml({
