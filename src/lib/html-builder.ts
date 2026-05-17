@@ -41,10 +41,16 @@ export function buildRichHtml({
     resolvedHeaderImageUrl === normalizedThumbnailUrl;
   const headerHtml = `<div style="text-align:center"><img src="${resolvedHeaderImageUrl}" width="1920" style="max-width:100%" /></div>`;
 
-  const thumbnailContent = normalizedThumbnailUrl && !isDuplicateImage
+  const shouldShowThumbnail =
+    Boolean(normalizedThumbnailUrl) && !isDuplicateImage;
+  const thumbnailContent = shouldShowThumbnail
     ? `<img src="${normalizedThumbnailUrl}" width="1920" style="max-width:100%;height:auto" />`
-    : `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">Open source</a>`;
-  const thumbnailHtml = `<div style="text-align:center;margin:24px 0">${thumbnailContent}</div>`;
+    : platform !== "youtube"
+      ? `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">Open source</a>`
+      : "";
+  const thumbnailHtml = thumbnailContent
+    ? `<div style="text-align:center;margin:24px 0">${thumbnailContent}</div>`
+    : "";
   const introHtml =
     '<p><strong>Watch the full video at the end.</strong></p>';
 
@@ -64,7 +70,9 @@ export function buildRichHtml({
     footerHtml = `<div style="text-align:center;margin-top:32px">${footerContent}</div>`;
   }
 
-  const bodyParts = [headerHtml, thumbnailHtml, introHtml, articleHtml];
+  const bodyParts = [headerHtml, thumbnailHtml, introHtml, articleHtml].filter(
+    Boolean
+  );
   if (footerHtml) {
     bodyParts.push(outroHtml, footerHtml);
   } else {
