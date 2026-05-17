@@ -139,7 +139,7 @@ export default function Home() {
         | ExtractResponse
         | { error: string };
 
-      if (!extractResponse.ok) {
+      if (!extractResponse.ok || "error" in extractJson) {
         throw new Error(
           "error" in extractJson ? extractJson.error : "Extraction failed."
         );
@@ -169,7 +169,7 @@ export default function Home() {
         | { article: string }
         | { error: string };
 
-      if (!generateResponse.ok) {
+      if (!generateResponse.ok || "error" in generateJson) {
         throw new Error(
           "error" in generateJson ? generateJson.error : "Generation failed."
         );

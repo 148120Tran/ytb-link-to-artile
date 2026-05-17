@@ -1,4 +1,4 @@
-import { getOpenGraphMeta } from "@/lib/extractors/generic";
+import { getOpenGraphMeta, OpenGraphMeta } from "@/lib/extractors/generic";
 import { getYouTubeMeta, getYouTubeTranscript } from "@/lib/extractors/youtube";
 import { parseYouTubeId } from "@/lib/youtube-utils";
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         getYouTubeMeta(videoId),
         getYouTubeTranscript(videoId),
       ]);
-      const ogMeta = await getOpenGraphMeta(url).catch(() => ({}));
+      const ogMeta = await getOpenGraphMeta(url).catch((): OpenGraphMeta => ({}));
 
       const title = meta.title || ogMeta.title || "Untitled video";
       const thumbnailUrl = meta.thumbnailUrl || ogMeta.image || "";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const ogMeta = await getOpenGraphMeta(url);
+    const ogMeta = await getOpenGraphMeta(url).catch((): OpenGraphMeta => ({}));
     const title = ogMeta.title || "Untitled link";
     const thumbnailUrl = ogMeta.image || "";
     const description = ogMeta.description || "";
