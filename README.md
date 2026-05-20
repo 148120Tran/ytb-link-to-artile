@@ -32,6 +32,8 @@ Build a Windows installer (requires `npm run build` to succeed):
 npm run electron:dist
 ```
 
+The Electron build uses Next.js standalone output generated during `npm run build`.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

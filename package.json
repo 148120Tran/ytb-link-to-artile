@@ -9,7 +9,7 @@
     "lint": "eslint",
     "electron": "electron .",
     "electron:dev": "electron .",
-    "electron:dist": "npm run build && electron-builder"
+    "electron:dist": "npm run build && node scripts/prepare-electron.mjs && electron-builder"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -37,13 +37,10 @@
     "productName": "Gemini Article",
     "files": [
       "electron/**/*",
-      ".next/**/*",
-      "public/**/*",
-      "src/**/*",
-      "package.json",
-      "next.config.ts"
+      ".next/standalone/**/*",
+      "package.json"
     ],
-    "asar": true,
+    "asar": false,
     "win": {
       "target": "nsis"
     }

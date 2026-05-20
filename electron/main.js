@@ -1,12 +1,53 @@
-const { app, BrowserWindow } = require("electron");
-const { spawn } = require("child_process");
-const http = require("http");
-const path = require("path");
+const { app, BrowserWindow, dialog } = require("electron");
+const { spawn } = require("node:child_process");
+const fs = require("node:fs");
+const http = require("node:http");
+const path = require("node:path");
 
 const SERVER_PORT = Number(process.env.ELECTRON_SERVER_PORT || 3000);
 let serverProcess = null;
 
-function waitForServer(url, timeoutMs = 40000) {
+// ---------------------------------------------------------------------------
+// User config — lives at %APPDATA%/Gemini Article/config.json (or OS equiv.)
+// Users edit this file to set TARGET_API_URL, GEMINI_MODEL, etc.
+// ---------------------------------------------------------------------------
+const CONFIG_DEFAULTS = {
+  TARGET_API_URL: "",
+  GEMINI_API_KEY: "",
+  GEMINI_MODEL: "gemini-1.5-flash-latest",
+  SAMPLE_IMAGE_URL: "",
+  LIVEWIRE_PAGE_URL: "",
+  LIVEWIRE_COMPONENT_NAME: "",
+  LIVEWIRE_COOKIE: "",
+};
+
+function loadUserConfig() {
+  const configPath = path.join(app.getPath("userData"), "config.json");
+
+  if (!fs.existsSync(configPath)) {
+    // Write a template on first launch so the user knows what to fill in.
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify(CONFIG_DEFAULTS, null, 2),
+      "utf8"
+    );
+    console.log("Created default config at", configPath);
+    return { ...CONFIG_DEFAULTS };
+  }
+
+  try {
+    const raw = fs.readFileSync(configPath, "utf8");
+    return { ...CONFIG_DEFAULTS, ...JSON.parse(raw) };
+  } catch (err) {
+    console.error("Could not parse config.json:", err.message);
+    return { ...CONFIG_DEFAULTS };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Server helpers
+// ---------------------------------------------------------------------------
+function waitForServer(url, timeoutMs = 60000) {
   const startedAt = Date.now();
 
   return new Promise((resolve, reject) => {
@@ -21,7 +62,7 @@ function waitForServer(url, timeoutMs = 40000) {
           reject(new Error("Next.js server failed to start in time."));
           return;
         }
-        setTimeout(attempt, 300);
+        setTimeout(attempt, 500);
       });
     };
 
@@ -29,34 +70,63 @@ function waitForServer(url, timeoutMs = 40000) {
   });
 }
 
-function startNextServer() {
+function startNextServer(userConfig) {
   const appPath = app.getAppPath();
-  const nextBin = path.join(
-    appPath,
-    "node_modules",
-    "next",
-    "dist",
-    "bin",
-    "next"
-  );
-  const nextCommand = app.isPackaged ? "start" : "dev";
 
-  serverProcess = spawn(
-    process.execPath,
-    ["--runAsNode", nextBin, nextCommand, "-p", String(SERVER_PORT)],
-    {
-      cwd: appPath,
+  // Merge user config values into the env for the child process.
+  const extraEnv = {};
+  for (const [key, value] of Object.entries(userConfig)) {
+    if (value && String(value).trim()) {
+      extraEnv[key] = String(value).trim();
+    }
+  }
+
+  if (app.isPackaged) {
+    // Production: use the self-contained standalone server produced by
+    // `next build` with output:"standalone".  static + public assets were
+    // copied into the standalone directory by scripts/prepare-electron.mjs.
+    const standaloneDir = path.join(appPath, ".next", "standalone");
+    const serverScript = path.join(standaloneDir, "server.js");
+
+    serverProcess = spawn(process.execPath, [serverScript], {
+      cwd: standaloneDir,
       env: {
         ...process.env,
-        NODE_ENV: app.isPackaged ? "production" : "development",
+        ...extraEnv,
+        ELECTRON_RUN_AS_NODE: "1",
+        NODE_ENV: "production",
         PORT: String(SERVER_PORT),
+        HOSTNAME: "127.0.0.1",
       },
       stdio: "inherit",
-    }
-  );
+    });
+  } else {
+    // Development: use `next dev` from the project root.
+    const nextBin = path.join(
+      appPath,
+      "node_modules",
+      "next",
+      "dist",
+      "bin",
+      "next"
+    );
+
+    serverProcess = spawn(process.execPath, [nextBin, "dev", "-p", String(SERVER_PORT)], {
+        cwd: appPath,
+        env: {
+          ...process.env,
+          ...extraEnv,
+          ELECTRON_RUN_AS_NODE: "1",
+          NODE_ENV: "development",
+          PORT: String(SERVER_PORT),
+        },
+        stdio: "inherit",
+      }
+    );
+  }
 
   serverProcess.on("exit", (code) => {
-    if (code && code !== 0) {
+    if (code !== null && code !== 0) {
       console.error("Next.js server exited with code", code);
     }
   });
@@ -73,13 +143,31 @@ async function createMainWindow() {
     },
   });
 
-  const url = `http://localhost:${SERVER_PORT}`;
-  await waitForServer(url);
-  await mainWindow.loadURL(url);
+  const serverUrl = `http://localhost:${SERVER_PORT}`;
+
+  try {
+    await waitForServer(serverUrl);
+  } catch (err) {
+    const configPath = path.join(app.getPath("userData"), "config.json");
+    dialog.showErrorBox(
+      "Server failed to start",
+      `The Next.js server did not respond within the timeout period.\n\n` +
+        `${err.message}\n\n` +
+        `Configuration file: ${configPath}`
+    );
+    app.quit();
+    return;
+  }
+
+  await mainWindow.loadURL(serverUrl);
 }
 
+// ---------------------------------------------------------------------------
+// App lifecycle
+// ---------------------------------------------------------------------------
 app.whenReady().then(async () => {
-  startNextServer();
+  const userConfig = loadUserConfig();
+  startNextServer(userConfig);
   await createMainWindow();
 
   app.on("activate", () => {

@@ -161,8 +161,11 @@ function createUpdateId() {
   return Math.random().toString(36).slice(2, 6);
 }
 
-function resolveSampleImageUrl(pageUrl: string) {
-  const raw = process.env.SAMPLE_IMAGE_URL?.trim() || "/sample.jpg";
+function resolveSampleImageUrl(pageUrl: string, urlOverride?: string) {
+  const raw =
+    urlOverride?.trim() ||
+    process.env.SAMPLE_IMAGE_URL?.trim() ||
+    "/sample.jpg";
   if (raw.startsWith("http://") || raw.startsWith("https://")) {
     return raw;
   }
@@ -195,6 +198,7 @@ export async function POST(request: Request) {
   const videoId = formData.get("video_id");
   const livewireCookieInput = formData.get("livewire_cookie");
   const csrfTokenInput = formData.get("csrf_token");
+  const sampleImageUrlInput = formData.get("sample_image_url");
 
   if (typeof title !== "string" || typeof content !== "string") {
     return Response.json({ error: "Missing title or content." }, { status: 400 });
@@ -249,8 +253,11 @@ export async function POST(request: Request) {
     typeof csrfTokenInput === "string" && csrfTokenInput.trim()
       ? csrfTokenInput.trim()
       : null;
-  const livewireSnapshotOverride = LIVEWIRE_SNAPSHOT_OVERRIDE;
-  const sampleImageUrl = resolveSampleImageUrl(livewirePageUrl);
+const livewireSnapshotOverride = LIVEWIRE_SNAPSHOT_OVERRIDE;
+  const sampleImageUrl = resolveSampleImageUrl(
+    livewirePageUrl,
+    typeof sampleImageUrlInput === "string" ? sampleImageUrlInput : undefined
+  );
   const headerImageUrl = thumbnailUrl.trim() ? thumbnailUrl : sampleImageUrl;
   const descriptionHtml = buildRichHtml({
     headerImageUrl,

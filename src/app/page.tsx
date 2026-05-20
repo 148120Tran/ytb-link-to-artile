@@ -43,6 +43,7 @@ export default function Home() {
   const [headerPreviewUrl, setHeaderPreviewUrl] = useState(
     FALLBACK_HEADER_IMAGE_URL
   );
+  const [sampleImageUrl, setSampleImageUrl] = useState("");
   const [livewireCookie, setLivewireCookie] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
   const [extractData, setExtractData] = useState<ExtractResponse | null>(null);
@@ -224,6 +225,9 @@ export default function Home() {
       if (csrfToken.trim()) {
         formData.append("csrf_token", csrfToken.trim());
       }
+      if (sampleImageUrl.trim()) {
+        formData.append("sample_image_url", sampleImageUrl.trim());
+      }
       formData.append("image", publishImageFile, publishImageFile.name);
       formData.append("source_url", extractData.originalUrl);
 
@@ -372,6 +376,23 @@ export default function Home() {
                       className="h-36 w-full rounded-xl object-cover"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-white/60">
+                    Default header image URL (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={sampleImageUrl}
+                    onChange={(event) => setSampleImageUrl(event.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-xs text-white/80 outline-none transition focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20"
+                  />
+                  <p className="text-xs text-white/50">
+                    Public URL used as the header image when no file is
+                    uploaded. Must be accessible by the publish target.
+                  </p>
                 </div>
 
                 <div className="space-y-2">
