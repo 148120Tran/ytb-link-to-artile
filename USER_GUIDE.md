@@ -32,13 +32,13 @@ These values come from the browser when you are logged in to your CMS admin page
 8. Copy these values:
    - `Cookie`: copy the entire value after `Cookie:`
    - `X-CSRF-TOKEN`: copy the entire value
-   img1
-9. For the 'Publish endpoint override' it would be the domain name it would be inside where we create a post
-img2
+   ![image-alt](https://github.com/148120Tran/ytb-link-to-artile/blob/55a74401f6d689197d1b9e27c019cc61ed10f0ec/F12%20cookie%20and%20csrf.png)
+9. For the 'Publish endpoint override' it would be the domain name it would be inside where we create a post 
+Network>apost api> header> Request URL > https://runwaytimes.cafex.biz/livewire/message/post-manager-component (this one for example)
 10. For 'Livewire page URL override' it would be the domain name like 'https://runwaytimes.cafex.biz/backend/posts'
 
 11. For 'Livewire snapshot override' 
-img3
+![image-alt](https://github.com/148120Tran/ytb-link-to-artile/blob/55a74401f6d689197d1b9e27c019cc61ed10f0ec/livewire%20sample.png)
 
 
 
