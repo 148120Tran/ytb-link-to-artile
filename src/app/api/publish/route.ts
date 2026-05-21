@@ -174,14 +174,6 @@ function resolveSampleImageUrl(pageUrl: string, urlOverride?: string) {
 }
 
 export async function POST(request: Request) {
-  const targetUrl = process.env.TARGET_API_URL;
-  if (!targetUrl) {
-    return Response.json(
-      { error: "TARGET_API_URL is not set." },
-      { status: 500 }
-    );
-  }
-
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -199,6 +191,22 @@ export async function POST(request: Request) {
   const livewireCookieInput = formData.get("livewire_cookie");
   const csrfTokenInput = formData.get("csrf_token");
   const sampleImageUrlInput = formData.get("sample_image_url");
+  const targetUrlInput = formData.get("target_api_url");
+  const livewirePageUrlInput = formData.get("livewire_page_url");
+  const livewireSnapshotOverrideInput = formData.get(
+    "livewire_snapshot_override"
+  );
+
+  const targetUrl =
+    typeof targetUrlInput === "string" && targetUrlInput.trim()
+      ? targetUrlInput.trim()
+      : process.env.TARGET_API_URL;
+  if (!targetUrl) {
+    return Response.json(
+      { error: "TARGET_API_URL is not set." },
+      { status: 500 }
+    );
+  }
 
   if (typeof title !== "string" || typeof content !== "string") {
     return Response.json({ error: "Missing title or content." }, { status: 400 });
@@ -242,7 +250,9 @@ export async function POST(request: Request) {
 
   const articleText = typeof article === "string" ? article : "";
   const livewirePageUrl =
-    process.env.LIVEWIRE_PAGE_URL?.trim() || DEFAULT_LIVEWIRE_PAGE_URL;
+    typeof livewirePageUrlInput === "string" && livewirePageUrlInput.trim()
+      ? livewirePageUrlInput.trim()
+      : process.env.LIVEWIRE_PAGE_URL?.trim() || DEFAULT_LIVEWIRE_PAGE_URL;
   const livewireComponent =
     process.env.LIVEWIRE_COMPONENT_NAME?.trim() || DEFAULT_LIVEWIRE_COMPONENT;
   const livewireCookie =
@@ -253,7 +263,11 @@ export async function POST(request: Request) {
     typeof csrfTokenInput === "string" && csrfTokenInput.trim()
       ? csrfTokenInput.trim()
       : null;
-const livewireSnapshotOverride = LIVEWIRE_SNAPSHOT_OVERRIDE;
+  const livewireSnapshotOverride =
+    typeof livewireSnapshotOverrideInput === "string" &&
+    livewireSnapshotOverrideInput.trim()
+      ? livewireSnapshotOverrideInput.trim()
+      : LIVEWIRE_SNAPSHOT_OVERRIDE;
   const sampleImageUrl = resolveSampleImageUrl(
     livewirePageUrl,
     typeof sampleImageUrlInput === "string" ? sampleImageUrlInput : undefined
@@ -414,7 +428,7 @@ const livewireSnapshotOverride = LIVEWIRE_SNAPSHOT_OVERRIDE;
         },
       ],
     };
-
+ 
     const saveResponse = await fetch(targetUrl, {
       method: "POST",
       headers,

@@ -44,6 +44,9 @@ export default function Home() {
     FALLBACK_HEADER_IMAGE_URL
   );
   const [sampleImageUrl, setSampleImageUrl] = useState("");
+  const [targetApiUrl, setTargetApiUrl] = useState("");
+  const [livewirePageUrl, setLivewirePageUrl] = useState("");
+  const [livewireSnapshotOverride, setLivewireSnapshotOverride] = useState("");
   const [livewireCookie, setLivewireCookie] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
   const [extractData, setExtractData] = useState<ExtractResponse | null>(null);
@@ -228,6 +231,18 @@ export default function Home() {
       if (sampleImageUrl.trim()) {
         formData.append("sample_image_url", sampleImageUrl.trim());
       }
+      if (targetApiUrl.trim()) {
+        formData.append("target_api_url", targetApiUrl.trim());
+      }
+      if (livewirePageUrl.trim()) {
+        formData.append("livewire_page_url", livewirePageUrl.trim());
+      }
+      if (livewireSnapshotOverride.trim()) {
+        formData.append(
+          "livewire_snapshot_override",
+          livewireSnapshotOverride.trim()
+        );
+      }
       formData.append("image", publishImageFile, publishImageFile.name);
       formData.append("source_url", extractData.originalUrl);
 
@@ -392,6 +407,56 @@ export default function Home() {
                   <p className="text-xs text-white/50">
                     Public URL used as the header image when no file is
                     uploaded. Must be accessible by the publish target.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-white/60">
+                    Publish endpoint override (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={targetApiUrl}
+                    onChange={(event) => setTargetApiUrl(event.target.value)}
+                    placeholder="https://example.com/livewire/message/..."
+                    className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-xs text-white/80 outline-none transition focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20"
+                  />
+                  <p className="text-xs text-white/50">
+                    Leave empty to use the server-side TARGET_API_URL.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-white/60">
+                    Livewire page URL override (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={livewirePageUrl}
+                    onChange={(event) => setLivewirePageUrl(event.target.value)}
+                    placeholder="https://example.com/backend/posts"
+                    className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-xs text-white/80 outline-none transition focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20"
+                  />
+                  <p className="text-xs text-white/50">
+                    Used to fetch the Livewire snapshot and as the Referer
+                    header when publishing.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-white/60">
+                    Livewire snapshot override (optional)
+                  </label>
+                  <textarea
+                    value={livewireSnapshotOverride}
+                    onChange={(event) =>
+                      setLivewireSnapshotOverride(event.target.value)
+                    }
+                    placeholder='{ "fingerprint": { ... }, "serverMemo": { ... } }'
+                    className="min-h-[140px] w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-xs text-white/80 outline-none transition focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/20"
+                  />
+                  <p className="text-xs text-white/50">
+                    Leave empty to auto-fetch the snapshot from the page URL.
                   </p>
                 </div>
 
