@@ -2,9 +2,9 @@ export type RichHtmlParams = {
   headerImageUrl?: string | null;
   thumbnailUrl?: string | null;
   article: string;
-  platform: "youtube" | "generic";
+  platform: "youtube" | "tiktok" | "generic";
   originalUrl: string;
-  youtubeVideoId?: string | null;
+  videoId?: string | null;
 };
 
 function escapeHtml(value: string) {
@@ -30,7 +30,7 @@ export function buildRichHtml({
   article,
   platform,
   originalUrl,
-  youtubeVideoId,
+  videoId,
 }: RichHtmlParams) {
   const normalizedHeaderImageUrl = headerImageUrl?.trim() || "";
   const normalizedThumbnailUrl = thumbnailUrl?.trim() || "";
@@ -45,7 +45,7 @@ export function buildRichHtml({
     Boolean(normalizedThumbnailUrl) && !isDuplicateImage;
   const thumbnailContent = shouldShowThumbnail
     ? `<img src="${normalizedThumbnailUrl}" width="1920" style="max-width:100%;height:auto" />`
-    : platform !== "youtube"
+    : platform === "generic"
       ? `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">Open source</a>`
       : "";
   const thumbnailHtml = thumbnailContent
@@ -61,9 +61,13 @@ export function buildRichHtml({
   const outroHtml = '<p><strong>Full video.</strong></p>';
 
   let footerHtml = "";
-  if (platform === "youtube" && youtubeVideoId) {
-    footerHtml = `<div style="text-align:center;margin-top:32px"><iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" title="YouTube video" frameborder="0" allowfullscreen></iframe></div>`;
-  } else if (platform !== "youtube") {
+  const normalizedVideoId = videoId?.trim() || "";
+
+  if (platform === "youtube" && normalizedVideoId) {
+    footerHtml = `<div style="text-align:center;margin-top:32px"><iframe width="560" height="315" src="https://www.youtube.com/embed/${normalizedVideoId}" title="YouTube video" frameborder="0" allowfullscreen></iframe></div>`;
+  } else if (platform === "tiktok" && normalizedVideoId) {
+    footerHtml = `<div style="text-align:center;margin-top:32px"><iframe width="325" height="575" src="https://www.tiktok.com/embed/v2/${normalizedVideoId}" title="TikTok video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width:100%;border:none"></iframe></div>`;
+  } else if (platform === "generic" || platform === "tiktok") {
     const footerContent = thumbnailUrl
       ? `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer"><img src="${thumbnailUrl}" width="1920" style="max-width:100%;height:auto" /></a>`
       : `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">Open source</a>`;

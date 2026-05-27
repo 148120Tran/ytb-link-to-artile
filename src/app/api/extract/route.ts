@@ -1,5 +1,7 @@
 import { getOpenGraphMeta, OpenGraphMeta } from "@/lib/extractors/generic";
+import { getTikTokMeta } from "@/lib/extractors/tiktok";
 import { getYouTubeMeta, getYouTubeTranscript } from "@/lib/extractors/youtube";
+import { isTikTokUrl } from "@/lib/tiktok-utils";
 import { parseYouTubeId } from "@/lib/youtube-utils";
 
 export const runtime = "nodejs";
@@ -42,6 +44,29 @@ export async function POST(request: Request) {
         platform: "youtube",
         originalUrl: url,
         transcriptAvailable,
+        videoId,
+      });
+    }
+
+    if (isTikTokUrl(url)) {
+      const [meta, ogMeta] = await Promise.all([
+        getTikTokMeta(url).catch(() => null),
+        getOpenGraphMeta(url).catch((): OpenGraphMeta => ({})),
+      ]);
+
+      const title = meta?.title || ogMeta.title || "Untitled TikTok";
+      const thumbnailUrl = meta?.thumbnailUrl || ogMeta.image || "";
+      const description = ogMeta.description || "";
+      const content = [title, description].filter(Boolean).join("\n\n");
+      const videoId = meta?.videoId || undefined;
+
+      return Response.json({
+        title,
+        thumbnailUrl,
+        content,
+        platform: "tiktok",
+        originalUrl: url,
+        transcriptAvailable: false,
         videoId,
       });
     }

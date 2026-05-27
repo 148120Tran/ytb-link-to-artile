@@ -188,6 +188,7 @@ export async function POST(request: Request) {
   const article = formData.get("article");
   const thumbnailUrl = formData.get("thumbnail_url");
   const videoId = formData.get("video_id");
+  const platformInput = formData.get("platform");
   const livewireCookieInput = formData.get("livewire_cookie");
   const csrfTokenInput = formData.get("csrf_token");
   const sampleImageUrlInput = formData.get("sample_image_url");
@@ -273,13 +274,21 @@ export async function POST(request: Request) {
     typeof sampleImageUrlInput === "string" ? sampleImageUrlInput : undefined
   );
   const headerImageUrl = thumbnailUrl.trim() ? thumbnailUrl : sampleImageUrl;
+  const rawPlatform =
+    typeof platformInput === "string" ? platformInput.trim() : "";
+  const platform =
+    rawPlatform === "youtube" ||
+    rawPlatform === "tiktok" ||
+    rawPlatform === "generic"
+      ? rawPlatform
+      : "generic";
   const descriptionHtml = buildRichHtml({
     headerImageUrl,
     thumbnailUrl,
     article: articleText,
-    platform: "youtube",
+    platform,
     originalUrl: sourceUrl,
-    youtubeVideoId:
+    videoId:
       typeof videoId === "string" && videoId.trim() ? videoId.trim() : undefined,
   });
 

@@ -9,7 +9,7 @@ type ExtractResponse = {
   title: string;
   thumbnailUrl: string;
   content: string;
-  platform: "youtube" | "generic";
+  platform: "youtube" | "tiktok" | "generic";
   originalUrl: string;
   transcriptAvailable: boolean;
   videoId?: string;
@@ -87,7 +87,7 @@ export default function Home() {
       article,
       platform: extractData.platform,
       originalUrl: extractData.originalUrl,
-      youtubeVideoId: extractData.videoId,
+      videoId: extractData.videoId,
     });
   }, [article, extractData, headerPreviewUrl]);
 
@@ -128,7 +128,7 @@ export default function Home() {
     setWarning(null);
 
     if (!url.trim()) {
-      setError("Paste a YouTube link first.");
+      setError("Paste a YouTube or TikTok link first.");
       return;
     }
 
@@ -207,7 +207,7 @@ export default function Home() {
         article,
         platform: extractData.platform,
         originalUrl: extractData.originalUrl,
-        youtubeVideoId: extractData.videoId,
+        videoId: extractData.videoId,
       });
 
       const publishImageFile = await resolvePublishImageFile();
@@ -222,6 +222,7 @@ export default function Home() {
       if (extractData.videoId) {
         formData.append("video_id", extractData.videoId);
       }
+      formData.append("platform", extractData.platform);
       if (livewireCookie.trim()) {
         formData.append("livewire_cookie", livewireCookie.trim());
       }
@@ -619,7 +620,7 @@ export default function Home() {
                 </div>
                 <p className="mt-3">
                   Header image: /header.png, thumbnail: {extractData?.thumbnailUrl ? "ready" : "missing"},
-                  embed: {extractData?.platform === "youtube" ? "iframe" : "link"}.
+                  embed: {extractData?.platform === "youtube" || extractData?.platform === "tiktok" ? "iframe" : "link"}.
                 </p>
               </div>
             )}
